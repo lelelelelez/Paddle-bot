@@ -10,13 +10,13 @@ routes = web.RouteTableDef()
 
 router = routing.Router()
 
-@router.register("pull_request", action="opened")
+@router.register("issues", action="created")
 async def pull_request_event(event, gh, *args, **kwargs):
     """
     Whenever an issue is opened, greet the author and say thanks.
     """
-    url = event.data["pull_request"]["url"]
-    author = event.data["pull_request"]["user"]["login"]
+    url = event.data["issue"]["comments_url"]
+    author = event.data["issue"]["user"]["login"]
 
     message = f"Thanks for the report @{author}! I will look into it ASAP! (I'm a bot)."
     await gh.post(url, data={"body": message})
@@ -30,7 +30,7 @@ async def main(request):
 
     event = sansio.Event.from_http(request.headers, body, secret=secret)
     async with aiohttp.ClientSession() as session:
-        gh = gh_aiohttp.GitHubAPI(session, "mariatta",
+        gh = gh_aiohttp.GitHubAPI(session, "lelelelelez",
                                   oauth_token=oauth_token)
         await router.dispatch(event, gh)
     return web.Response(status=200)
