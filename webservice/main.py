@@ -11,7 +11,7 @@ routes = web.RouteTableDef()
 router = routing.Router()
 
 @router.register("issues", action="created")
-async def pull_request_event(event, gh, *args, **kwargs):
+async def issues_event(event, gh, *args, **kwargs):
     """
     Whenever an issue is opened, greet the author and say thanks.
     """
@@ -19,6 +19,31 @@ async def pull_request_event(event, gh, *args, **kwargs):
     author = event.data["issue"]["user"]["login"]
 
     message = f"Thanks for the report @{author}! I will look into it ASAP! (I'm a bot)."
+    await gh.post(url, data={"body": message})
+
+
+
+@router.register("pull_request", action="reopened")
+async def pull_request_event(event, gh, *args, **kwargs):
+    """
+    Whenever an issue is opened, greet the author and say thanks.
+    """
+    url = event.data["pull_request"]["issue_url"]
+    author = event.data["pull_request"]["user"]["login"]
+
+    message = f"Thanks for the report @{author}! Reopened!! (I'm a bot)."
+    await gh.post(url, data={"body": message})
+
+
+@router.register("pull_request", action="closed")
+async def pull_request_event_close(event, gh, *args, **kwargs):
+    """
+    Whenever an issue is opened, greet the author and say thanks.
+    """
+    url = event.data["pull_request"]["issue_url"]
+    author = event.data["pull_request"]["user"]["login"]
+
+    message = f"Thanks for the report @{author}! closed!! (I'm a bot)."
     await gh.post(url, data={"body": message})
 
 @routes.post("/")
