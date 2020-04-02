@@ -22,7 +22,7 @@ async def issues_event(event, gh, *args, **kwargs):
     await gh.post(url, data={"body": message})
 
 
-@router.register("issues_comment", action="created")
+@router.register("issue_comment", action="created")
 async def issues_comment_event(event, gh, *args, **kwargs):
     """
     Whenever an issue is opened, greet the author and say thanks.
@@ -30,7 +30,7 @@ async def issues_comment_event(event, gh, *args, **kwargs):
     url = event.data["issue"]["comments_url"]
     author = event.data["issue"]["user"]["login"]
 
-    message = f"Thanks for the report @{author}! issues_comment issues! (I'm a bot)."
+    message = f"Thanks for the report @{author}! issue_comment issues! (I'm a bot)."
     await gh.post(url, data={"body": message})
 
 
