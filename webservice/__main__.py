@@ -1,6 +1,6 @@
 import time
+import os
 import aiohttp
-import jwt
 from gidgethub.aiohttp import GitHubAPI
 from aiohttp import web
 from gidgethub import routing, sansio
@@ -57,7 +57,4 @@ async def main(request):
 if __name__ == "__main__":
     app = web.Application()
     app.add_routes(routes)
-    port = os.environ.get("PORT")
-    if port is not None:
-        port = int(port)
-    web.run_app(app, port=port)
+

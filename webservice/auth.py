@@ -1,5 +1,6 @@
 import os
 import time
+import jwt
 
 def get_jwt(app_id):
     # TODO: read is as an environment variable

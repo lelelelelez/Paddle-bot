@@ -26,7 +26,7 @@ async def checkIssue(commit_url, sha):
 						res = False
 	print(res)
 
-def main(url, sha, func):
+def checkMain(url, sha, func):
     tasks = [func(url, sha)]
     event_loop = asyncio.get_event_loop()
     results = event_loop.run_until_complete(asyncio.gather(*tasks))
