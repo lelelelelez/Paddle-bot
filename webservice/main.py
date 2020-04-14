@@ -47,6 +47,7 @@ async def pull_request_event(event, gh, *args, **kwargs):
     await gh.post(url, data={"body": message})
 
 
+
 @router.register("pull_request", action="closed")
 async def pull_request_event_close(event, gh, *args, **kwargs):
     """
@@ -57,6 +58,11 @@ async def pull_request_event_close(event, gh, *args, **kwargs):
 
     message = f"Thanks for the report @{author}! closed!! (I'm a bot)."
     await gh.post(url, data={"body": message})
+
+@routes.get("/bot")
+async def main_1(request):
+    return web.Response(status=200, text="Hello world!, I'm Bot")
+
 
 @routes.post("/")
 async def main(request):
@@ -71,6 +77,8 @@ async def main(request):
                                   oauth_token=oauth_token)
         await router.dispatch(event, gh)
     return web.Response(status=200)
+
+
 
 
 if __name__ == "__main__":
