@@ -13,7 +13,7 @@ async def checkPR(commit_url, sha):
 				if reponse[i]['sha'] == sha:
 					if 'test=develop' in reponse[i]['commit']['message']:
 						res = True
-	print(res)
+	return res
 
 async def checkIssue(commit_url, sha):
 	res = True
