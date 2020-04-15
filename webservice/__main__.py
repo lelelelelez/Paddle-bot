@@ -6,28 +6,30 @@ from aiohttp import web
 from gidgethub import routing, sansio
 from gidgethub import aiohttp as gh_aiohttp
 import text
-from check import checkPR, checkMain, checkIssue
+from check import checkPRCI, checkPRTemplate
 from auth import get_jwt, get_installation, get_installation_access_token
 
 routes = web.RouteTableDef()
 router = routing.Router()
 
 @router.register("pull_request", action="opened")
-async def pull_request_event_open(event, gh, *args, **kwargs):   
-    url = event.data["pull_request"]["comments_url"]
-    author = event.data["pull_request"]["user"]["login"]
-    message = text.PR_OPENED
-    await gh.post(url, data={"body": message})
-
 @router.register("pull_request", action="synchronize")
-async def pull_request_event_open(event, gh, *args, **kwargs):   
-    url = event.data["pull_request"]["comments_url"]
+async def pull_request_event_ci(event, gh, *args, **kwargs): 
+    url = event.data["pull_request"]["comments_url"]  
+    commit_url = event.data["commits_url"]
     sha = event.data["head"]["sha"]
-    print(checkMain(url, sha, checkPR))
-    if !checkMain(url, sha, checkPR):
-        commit_url = event.data["commits_url"]
-        message = text.PR_OPENED
+    if checkPRCI(commit_url, sha) == False:
+        message = text.PULL_REQUEST_OPENED
         await gh.post(url, data={"body": message})
+
+@router.register("pull_request", action="opened")
+async def pull_request_event(event, gh, *args, **kwargs): 
+    url = event.data["pull_request"]["comments_url"]  
+    BODY = event.data["pull_request"]["body"]
+    if checkPRTemplate(BODY) == False:
+        message = text.NOT_USING_TEMPLATE
+        await gh.post(url, data={"body": message})
+
 
 @routes.post("/")
 async def main(request):
@@ -57,4 +59,8 @@ async def main(request):
 if __name__ == "__main__":
     app = web.Application()
     app.add_routes(routes)
+    port = os.environ.get("PORT")
+    if port is not None:
+        port = int(port)
 
+    web.run_app(app, port=port)
