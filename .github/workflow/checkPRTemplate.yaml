@@ -1,0 +1,57 @@
+name: Greet Everyone
+# This workflow is triggered on pushes to the repository.
+on: pull_request
+
+jobs:
+  check:
+    name: CheckPRTemplate
+    runs-on: ubuntu-latest
+    actions/setup-python@v1
+    steps:
+      - name: Set up Python 3.7
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+		
+    - name: Update paper list
+      run: |
+        cd paper_infos
+        python generate_tables.py
+		
+    - name: commit
+      run: |
+        git config --global user.email 1435679023@qq.com
+        git config --global user.name marsggbo
+        git add .
+        git commit -m "update" -a
+		
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+name: Check
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - name: 
+      env:
+        PEM_FILE_PATH: ${{ secrets.PEM_FILE_PATH }}
+        GH_AUTH: ${{ secrets.GH_AUTH }}
+        GH_SECRET: ${{ secrets.GH_SECRET }}
+        GH_APP_ID: ${{ secrets.GH_APP_ID }}
+      run: |
+        cd $HOME/webservice
+        python template.py
+		
