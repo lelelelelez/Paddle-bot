@@ -17,6 +17,5 @@ jobs:
         GH_APP_ID: ${{ secrets.GH_APP_ID }}
       run: |
         pwd
-        ls
-        cd webservice
+        ls -l
         python template.py
