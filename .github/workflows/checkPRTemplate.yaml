@@ -17,7 +17,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install gidgethub
         pip install aiohttp
-        pip install requests jwt time
+        pip install requests 
+        pip install jwt 
+        pip install time
 
     - name: 
       env:
