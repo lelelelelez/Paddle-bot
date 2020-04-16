@@ -18,8 +18,7 @@ jobs:
         pip install gidgethub
         pip install aiohttp
         pip install requests 
-        pip install jwt 
-        pip install time
+        pip install jwt
 
     - name: 
       env:
