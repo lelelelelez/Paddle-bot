@@ -18,4 +18,3 @@ jobs:
       run: |
         cd $HOME/webservice
         python template.py
-		
