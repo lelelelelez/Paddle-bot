@@ -1,7 +1,7 @@
 from gidgethub import routing
 from utils.check import checkPRCI, checkPRTemplate
 import text
-
+import time
 router = routing.Router()
 
 async def create_check_run(sha, gh):

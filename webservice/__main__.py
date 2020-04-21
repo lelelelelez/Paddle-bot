@@ -14,7 +14,6 @@ router = routing.Router(event.router)
 async def main(request):
     body = await request.read()
     secret = os.environ.get("GH_SECRET")
-    #oauth_token = os.environ.get("GH_AUTH")
     event = sansio.Event.from_http(request.headers, body, secret=secret)
     async with aiohttp.ClientSession() as session:
         app_id = os.getenv("GH_APP_ID")
