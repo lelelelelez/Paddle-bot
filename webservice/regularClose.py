@@ -1,59 +1,87 @@
+import os
 import aiohttp
 import asyncio
 import json
 import requests
 import datetime
 import logging
- 
+import gidgethub
+from gidgethub import aiohttp as gh_aiohttp
+from utils.auth import get_jwt, get_installation, get_installation_access_token
 
 logging.basicConfig(level=logging.INFO, filename='./logs/regularClose.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
-def overdueList(url, token):
+
+def getNextUrl(link):
+    next_str = None
+    for i in link.split(','):
+        if 'rel="next"' in i:
+            next_str = i
+            break
+    if next_str != None:
+        start_index = next_str.index('<')
+        end_index = next_str.index('>')
+        url = next_str[start_index+1:end_index]
+    else:
+        url = None
+    return url
+
+async def overdueList(url, gh):
+    today = datetime.date.today()
+    lastMonth = str(today - datetime.timedelta(days=30))
     overduelist = []
-    #url = 'https://api.github.com/repos/PaddlePaddle/Paddle/pulls?per_page=100&page=1&direction=asc&q=addClass'
     while (url != None):
-        r = requests.get(url, auth=('lelelelelez', token))
-        res = r.json()
+        (code, header, body) = await gh._request("GET", url, {'accept': 'application/vnd.github.antiope-preview+json'})
+        res = json.loads(body.decode('utf8'))
         for item in res:
-            if item['created_at'] < lastMonth: #if createTime earlier than lastMonth
+            if item['updated_at'] < lastMonth: #if updateTime earlier than lastMonth
                 overduelist.append(item['number'])
-        if r.links.get('next'):
-            url = r.links['next']['url']
-        else:
-            url = None   
+        url = getNextUrl(header['link'])
     return overduelist
 
 
-async def main():
-    today = datetime.date.today()
-    lastMonth = str(today - datetime.timedelta(days=30))
-    pr_url = 'https://api.github.com/repos/lelelelelez/leetcode/pulls?per_page=100&page=1&direction=asc&q=addClass'
-    issues_url = 'https://api.github.com/repos/PaddlePaddle/Paddle/issues?per_page=100&page=1&direction=asc&q=addClass'
-    token = os.environ.get("GH_TOKEN")
-    PRList = overdueList(pr_url, token)
-    ISSUEList = overdueList(issues_url, token)
-    headers = {'content-type': 'application/json', 'authorization': "token %s" % token}
-    for item in [PRList, ISSUEList]:
-        if len(item) != 0: 
-            async with aiohttp.ClientSession(headers=headers) as session:
-                data = {"state": "closed"}
-                d = json.dumps(data)
-                if item == 'PRList':
-                    event = 'pulls'
-                else:
-                    event = 'issues'
-                for i in item:
-                    url = "https://api.github.com/repos/lelelelelez/leetcode/%s/%s" % (event, i)
-                    print(url)
-                    async with session.patch(url, data=d) as resp:
-                        if resp.status == 200:
-                            logger.info("%s_id: %s closed success!" % (event, i))
-                        else:
-                            logger.error("%s_id: %s closed failed!"  % (event, i))
+async def close(types, itemList, gh):
+    if types == 'pr':
+        event = 'pulls'
+    else:
+        event = 'issues'
+    data = {"state": "closed"}
+    d = json.dumps(data)
+    print(itemList)
+    if len(itemList) != 0:
+        for i in itemList:
+            url = "https://api.github.com/repos/PaddlePaddle/Paddle/%s/%s" % (event, i)
+            try:
+                await gh.patch(url, data=d)
+                logger.info("%s_id: %s closed success!" % (event, i))
+            except gidgethub.BadRequest:
+                logger.error("%s_id: %s closed failed!"  % (event, i))
+    else:
+        logger.info("%s is empty!" %item)
+
+async def main(user, repo):
+    async with aiohttp.ClientSession() as session:
+        app_id = os.getenv("GH_APP_ID")
+        jwt = get_jwt(app_id)
+        gh = gh_aiohttp.GitHubAPI(session, "lelelelelez")
+        try:
+            installation = await get_installation(gh, jwt, "lelelelelez")
+        except ValueError as ve:
+            print(ve)
         else:
-            logger.info("%s is empty!" %item)
+            access_token = await get_installation_access_token(
+                gh, jwt=jwt, installation_id=installation["id"]
+            )
+            # treat access_token as if a personal access token
+            gh = gh_aiohttp.GitHubAPI(session, "lelelelelez",
+                        oauth_token=access_token["token"])
+            pr_url = 'https://api.github.com/repos/%s/%s/pulls?per_page=100&page=1&direction=asc&q=addClass' %(user, repo)
+            issues_url = 'https://api.github.com/repos/%s/%s/issues?per_page=100&page=1&direction=asc&q=addClass' %(user, repo)
+            #PRList = await overdueList(pr_url, gh)
+            PRList = [333]
+            await close('pr', PRList, gh)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+loop.run_until_complete(main('PaddlePaddle', 'Paddle'))

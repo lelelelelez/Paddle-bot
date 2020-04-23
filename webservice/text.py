@@ -8,3 +8,4 @@ PULL_REQUEST_OPENED = u"""Thanks for your contribution!
 NOT_USING_TEMPLATE =u"""❌❌❌This PR is not created using [PR's template](https://github.com/lelelelelez/leetcode/blob/master/.github/PULL_REQUEST_TEMPLATE).
     Please use PR's template, it helps save our maintainers' time so that more developers get helped.
     """
+CLOSE_REGULAR = u"""CLOSE by bot!!!"""
