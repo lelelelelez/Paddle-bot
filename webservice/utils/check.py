@@ -15,7 +15,7 @@ def checkPRCI(commit_url, sha, CHECK_CI):
     reponse = requests.get(commit_url).json()
     for i in range(0, len(reponse)):
         if reponse[i]['sha'] == sha:
-            if CHECK_CI in reponse[i]['commit']['message']:
+            if CHECK_CI in reponse[i]['commit']['message'] or len(CHECK_CI) == 0:
                 res = True
     return res
 
@@ -28,10 +28,13 @@ def checkPRTemplate(body, CHECK_TEMPLATE):
     Returns:
         res: True or False
     """
+    print("CHECK_TEMPLATE: %s" %CHECK_TEMPLATE)
     res = False
     PR_RE = re.compile(CHECK_TEMPLATE, re.DOTALL)
     result = PR_RE.search(body)
-    if result != None:
+    if len(CHECK_TEMPLATE) == 0 and len(body) == 0: 
+        res = False    
+    elif result != None:
         res = True
     return res
 

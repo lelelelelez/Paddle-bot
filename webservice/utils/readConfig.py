@@ -2,7 +2,7 @@ import os
 import codecs
 import configparser
 
-proDir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+proDir = os.path.abspath(os.path.join(os.getcwd()))
 configPath = os.path.join(proDir,"conf/config.ini")
 
 class ReadConfig:
@@ -17,11 +17,3 @@ class ReadConfig:
         fd.close()
         self.cf = configparser.ConfigParser()
         self.cf.read(configPath, "utf-8")
-    '''
-    def Paddle(self,name):
-        value = self.cf.get("PaddlePaddle/Paddle",name)
-        return value
-
-    def benchmark(self,name):
-        value = self.cf.get("PaddlePaddle/benchmark",name)
-    '''

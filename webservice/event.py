@@ -1,6 +1,6 @@
 from gidgethub import routing
 from utils.check import checkPRCI, checkPRTemplate
-from utils.readConfig import ReadConfig()
+from utils.readConfig import ReadConfig
 import time
 
 router = routing.Router()
@@ -38,6 +38,7 @@ async def pull_request_event_template(event, gh, repo, *args, **kwargs):
     CHECK_TEMPLATE = localConfig.cf.get(repo, 'CHECK_TEMPLATE')
     global check_pr_template
     check_pr_template = checkPRTemplate(BODY, CHECK_TEMPLATE)
+    print(check_pr_template)
     if check_pr_template == False:
         message = localConfig.cf.get(repo, 'NOT_USING_TEMPLATE')
         await gh.post(url, data={"body": message})
