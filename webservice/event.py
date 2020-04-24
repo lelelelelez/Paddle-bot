@@ -4,10 +4,10 @@ import text
 import time
 router = routing.Router()
 
-async def create_check_run(sha, gh):
+async def create_check_run(sha, gh, full_name):
     """create a checkrun to check PR's description"""
     data = {'name': 'CheckPRTemplate', 'head_sha': sha}
-    url = 'https://api.github.com/repos/lelelelelez/leetcode/check-runs'
+    url = 'https://api.github.com/repos/%s/check-runs' % full_name
     await gh.post(url, data=data, accept='application/vnd.github.antiope-preview+json')
 
 
@@ -30,8 +30,9 @@ async def pull_request_event_ci(event, gh, *args, **kwargs):
 async def pull_request_event_template(event, gh, *args, **kwargs): 
     url = event.data["pull_request"]["comments_url"]  
     BODY = event.data["pull_request"]["body"]
+    full_name = event.data["repository"]["full_name"]
     sha = event.data["pull_request"]["head"]["sha"]
-    await create_check_run(sha, gh)
+    await create_check_run(sha, gh, full_name)
     global check_pr_template
     check_pr_template = checkPRTemplate(BODY)
     if check_pr_template == False:
@@ -51,4 +52,13 @@ async def running_check_run(event, gh, *args, **kwargs):
     else:
         data = {"name": name, "status": "completed", 'conclusion': 'success'}
     await gh.patch(url, data=data, accept='application/vnd.github.antiope-preview+json')
-    
+
+@router.register("pull_request", action="closed")
+@router.register("issues", action="closed")
+async def check_close_regularly(event, gh, *args, **kwargs):
+    """check_close_regularly"""
+    url = event.data["pull_request"]["comments_url"]
+    sender = event.data["sender"]["login"]
+    if sender == 'paddle-bot[bot]':
+        message = text.CLOSE_REGULAR
+    await gh.post(url, data={"body": message})    

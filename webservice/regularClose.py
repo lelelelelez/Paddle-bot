@@ -42,7 +42,7 @@ async def overdueList(url, gh):
     return overduelist
 
 
-async def close(types, itemList, gh):
+async def close(types, itemList, gh, user, repo):
     if types == 'pr':
         event = 'pulls'
     else:
@@ -52,9 +52,9 @@ async def close(types, itemList, gh):
     print(itemList)
     if len(itemList) != 0:
         for i in itemList:
-            url = "https://api.github.com/repos/PaddlePaddle/Paddle/%s/%s" % (event, i)
+            url = "https://api.github.com/repos/%s/%s/%s/%s" % (user, repo, event, i)
             try:
-                await gh.patch(url, data=d)
+                print(await gh.patch(url, data=data))
                 logger.info("%s_id: %s closed success!" % (event, i))
             except gidgethub.BadRequest:
                 logger.error("%s_id: %s closed failed!"  % (event, i))
@@ -65,9 +65,9 @@ async def main(user, repo):
     async with aiohttp.ClientSession() as session:
         app_id = os.getenv("GH_APP_ID")
         jwt = get_jwt(app_id)
-        gh = gh_aiohttp.GitHubAPI(session, "lelelelelez")
+        gh = gh_aiohttp.GitHubAPI(session, user)
         try:
-            installation = await get_installation(gh, jwt, "lelelelelez")
+            installation = await get_installation(gh, jwt, user)
         except ValueError as ve:
             print(ve)
         else:
@@ -75,13 +75,13 @@ async def main(user, repo):
                 gh, jwt=jwt, installation_id=installation["id"]
             )
             # treat access_token as if a personal access token
-            gh = gh_aiohttp.GitHubAPI(session, "lelelelelez",
+            gh = gh_aiohttp.GitHubAPI(session, user,
                         oauth_token=access_token["token"])
             pr_url = 'https://api.github.com/repos/%s/%s/pulls?per_page=100&page=1&direction=asc&q=addClass' %(user, repo)
             issues_url = 'https://api.github.com/repos/%s/%s/issues?per_page=100&page=1&direction=asc&q=addClass' %(user, repo)
             #PRList = await overdueList(pr_url, gh)
-            PRList = [333]
-            await close('pr', PRList, gh)
+            PRList = [358]
+            await close('pr', PRList, gh, user, repo)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(main('PaddlePaddle', 'Paddle'))
+loop.run_until_complete(main('PaddlePaddle', 'benchmark'))
