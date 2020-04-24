@@ -2,7 +2,6 @@ import os
 import aiohttp
 import asyncio
 import json
-import requests
 import datetime
 import logging
 import gidgethub
@@ -11,8 +10,6 @@ from utils.auth import get_jwt, get_installation, get_installation_access_token
 
 logging.basicConfig(level=logging.INFO, filename='./logs/regularClose.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-
 
 def getNextUrl(link):
     next_str = None

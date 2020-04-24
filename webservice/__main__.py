@@ -7,6 +7,7 @@ from gidgethub import aiohttp as gh_aiohttp
 from utils.auth import get_jwt, get_installation, get_installation_access_token
 import event 
 import json
+
 routes = web.RouteTableDef()
 router = routing.Router(event.router)
 
@@ -14,6 +15,7 @@ router = routing.Router(event.router)
 async def main(request):
     body = await request.read()
     user = json.loads(body.decode('utf8'))['repository']['owner']['login']
+    repo = json.loads(body.decode('utf8'))['repository']['full_name']
     secret = os.environ.get("GH_SECRET")
     event = sansio.Event.from_http(request.headers, body, secret=secret)
     async with aiohttp.ClientSession() as session:
@@ -31,7 +33,7 @@ async def main(request):
             # treat access_token as if a personal access token
             gh = gh_aiohttp.GitHubAPI(session, user,
                         oauth_token=access_token["token"])
-            await router.dispatch(event, gh)
+            await router.dispatch(event, gh, repo)
     return web.Response(status=200)
 
 @routes.get("/")

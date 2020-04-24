@@ -1,46 +1,49 @@
 from gidgethub import routing
 from utils.check import checkPRCI, checkPRTemplate
-import text
+from utils.readConfig import ReadConfig()
 import time
-router = routing.Router()
 
-async def create_check_run(sha, gh, full_name):
+router = routing.Router()
+localConfig = ReadConfig()
+
+async def create_check_run(sha, gh, repo):
     """create a checkrun to check PR's description"""
     data = {'name': 'CheckPRTemplate', 'head_sha': sha}
-    url = 'https://api.github.com/repos/%s/check-runs' % full_name
+    url = 'https://api.github.com/repos/%s/check-runs' % repo
     await gh.post(url, data=data, accept='application/vnd.github.antiope-preview+json')
 
 
 @router.register("pull_request", action="opened")
 @router.register("pull_request", action="synchronize")
-async def pull_request_event_ci(event, gh, *args, **kwargs): 
+async def pull_request_event_ci(event, gh, repo, *args, **kwargs): 
     """Check if PR triggers CI"""
     url = event.data["pull_request"]["comments_url"]  
     commit_url = event.data["pull_request"]["commits_url"]
     sha = event.data["pull_request"]["head"]["sha"]
-    if checkPRCI(commit_url, sha) == False:
-        message = text.PULL_REQUEST_OPENED_NOT_CI
+    CHECK_CI = localConfig.cf.get(repo, 'CHECK_CI')
+    if checkPRCI(commit_url, sha, CHECK_CI) == False:
+        message = localConfig.cf.get(repo, 'PULL_REQUEST_OPENED_NOT_CI')
     else:
-        message = text.PULL_REQUEST_OPENED
+        message = localConfig.cf.get(repo, 'PULL_REQUEST_OPENED')
     await gh.post(url, data={"body": message})
 
 
 @router.register("pull_request", action="edited")
 @router.register("pull_request", action="opened")
-async def pull_request_event_template(event, gh, *args, **kwargs): 
+async def pull_request_event_template(event, gh, repo, *args, **kwargs): 
     url = event.data["pull_request"]["comments_url"]  
     BODY = event.data["pull_request"]["body"]
-    full_name = event.data["repository"]["full_name"]
     sha = event.data["pull_request"]["head"]["sha"]
-    await create_check_run(sha, gh, full_name)
+    await create_check_run(sha, gh, repo)
+    CHECK_TEMPLATE = localConfig.cf.get(repo, 'CHECK_TEMPLATE')
     global check_pr_template
-    check_pr_template = checkPRTemplate(BODY)
+    check_pr_template = checkPRTemplate(BODY, CHECK_TEMPLATE)
     if check_pr_template == False:
-        message = text.NOT_USING_TEMPLATE
+        message = localConfig.cf.get(repo, 'NOT_USING_TEMPLATE')
         await gh.post(url, data={"body": message})
         
 @router.register("check_run", action="created")
-async def running_check_run(event, gh, *args, **kwargs):
+async def running_check_run(event, gh, repo, *args, **kwargs):
     """running checkrun"""
     url = event.data["check_run"]["url"]
     name = event.data["check_run"]["name"]
@@ -55,10 +58,10 @@ async def running_check_run(event, gh, *args, **kwargs):
 
 @router.register("pull_request", action="closed")
 @router.register("issues", action="closed")
-async def check_close_regularly(event, gh, *args, **kwargs):
+async def check_close_regularly(event, gh, repo, *args, **kwargs):
     """check_close_regularly"""
     url = event.data["pull_request"]["comments_url"]
     sender = event.data["sender"]["login"]
     if sender == 'paddle-bot[bot]':
-        message = text.CLOSE_REGULAR
+        message = localConfig.cf.get(repo, 'CLOSE_REGULAR')
     await gh.post(url, data={"body": message})    
