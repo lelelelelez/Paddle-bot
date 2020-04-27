@@ -2,7 +2,7 @@ from gidgethub import routing
 from utils.check import checkPRCI, checkPRTemplate
 from utils.readConfig import ReadConfig
 import time
-
+import logging
 router = routing.Router()
 localConfig = ReadConfig()
 
