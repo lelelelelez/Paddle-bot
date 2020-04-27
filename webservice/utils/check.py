@@ -28,7 +28,6 @@ def checkPRTemplate(body, CHECK_TEMPLATE):
     Returns:
         res: True or False
     """
-    print("CHECK_TEMPLATE: %s" %CHECK_TEMPLATE)
     res = False
     PR_RE = re.compile(CHECK_TEMPLATE, re.DOTALL)
     result = PR_RE.search(body)

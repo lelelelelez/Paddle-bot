@@ -2,7 +2,7 @@ from gidgethub import routing
 from utils.check import checkPRCI, checkPRTemplate
 from utils.readConfig import ReadConfig
 import time
-
+import logging
 router = routing.Router()
 localConfig = ReadConfig()
 
@@ -24,6 +24,8 @@ async def pull_request_event_ci(event, gh, repo, *args, **kwargs):
     url = event.data["pull_request"]["comments_url"]  
     commit_url = event.data["pull_request"]["commits_url"]
     sha = event.data["pull_request"]["head"]["sha"]
+    if repo != 'PaddlePaddle/Paddle' or repo != 'PaddlePaddle/benchmark':
+        repo = 'Others'
     CHECK_CI = localConfig.cf.get(repo, 'CHECK_CI')
     if checkPRCI(commit_url, sha, CHECK_CI) == False:
         message = localConfig.cf.get(repo, 'PULL_REQUEST_OPENED_NOT_CI')
@@ -42,6 +44,8 @@ async def pull_request_event_template(event, gh, repo, *args, **kwargs):
     BODY = event.data["pull_request"]["body"]
     sha = event.data["pull_request"]["head"]["sha"]
     await create_check_run(sha, gh, repo)
+    if repo != 'PaddlePaddle/Paddle' or repo != 'PaddlePaddle/benchmark':
+        repo = 'Others'
     CHECK_TEMPLATE = localConfig.cf.get(repo, 'CHECK_TEMPLATE')
     global check_pr_template
     check_pr_template = checkPRTemplate(BODY, CHECK_TEMPLATE)
@@ -65,12 +69,19 @@ async def running_check_run(event, gh, repo, *args, **kwargs):
     await gh.patch(url, data=data, accept='application/vnd.github.antiope-preview+json')
 
 @router.register("pull_request", action="closed")
-@router.register("issues", action="closed")
 async def check_close_regularly(event, gh, repo, *args, **kwargs):
     """check_close_regularly"""
     url = event.data["pull_request"]["comments_url"]
     sender = event.data["sender"]["login"]
     if sender == 'paddle-bot[bot]':
         message = localConfig.cf.get(repo, 'CLOSE_REGULAR')
+    await gh.post(url, data={"body": message})
 
+@router.register("issues", action="closed")
+async def check_close_regularly(event, gh, repo, *args, **kwargs):
+    """check_close_regularly"""
+    url = event.data["issue"]["comments_url"]
+    sender = event.data["sender"]["login"]
+    if sender == 'paddle-bot[bot]':
+        message = localConfig.cf.get(repo, 'CLOSE_REGULAR')
     await gh.post(url, data={"body": message})    
