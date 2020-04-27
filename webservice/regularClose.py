@@ -25,16 +25,25 @@ def getNextUrl(link):
         url = None
     return url
 
-async def overdueList(url, gh):
+async def overdueList(types, url, gh):
     today = datetime.date.today()
-    lastMonth = str(today - datetime.timedelta(days=30))
+    lastYear = str(today - datetime.timedelta(days=365))
+    print(lastYear)
     overduelist = []
     while (url != None):
         (code, header, body) = await gh._request("GET", url, {'accept': 'application/vnd.github.antiope-preview+json'})
         res = json.loads(body.decode('utf8'))
         for item in res:
-            if item['updated_at'] < lastMonth: #if updateTime earlier than lastMonth
-                overduelist.append(item['number'])
+            if types == 'issues' and 'pull_request' not in item:
+                if item['updated_at'] < lastYear: #if updateTime earlier than lastYear
+                    comments_url = item['comments_url']
+                    (code_co, header_co, body_co) = await gh._request("GET", comments_url, None)
+                    comments = json.loads(body_co.decode('utf8'))
+                    if len(comments) == 0:
+                        overduelist.append(item['number'])
+            elif types == 'pr':
+                if item['updated_at'] < lastYear: #if updateTime earlier than lastYear
+                    overduelist.append(item['number'])
         url = getNextUrl(header['link'])
     return overduelist
 
@@ -76,9 +85,10 @@ async def main(user, repo):
                         oauth_token=access_token["token"])
             pr_url = 'https://api.github.com/repos/%s/%s/pulls?per_page=100&page=1&direction=asc&q=addClass' %(user, repo)
             issues_url = 'https://api.github.com/repos/%s/%s/issues?per_page=100&page=1&direction=asc&q=addClass' %(user, repo)
-            #PRList = await overdueList(pr_url, gh)
-            PRList = [358]
+            PRList = await overdueList('pr', pr_url, gh)
+            issueList = await overdueList('issues', issues_url, gh)
             await close('pr', PRList, gh, user, repo)
+            await close('issue', issueList, gh, user, repo)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(main('PaddlePaddle', 'benchmark'))
+loop.run_until_complete(main('PaddlePaddle', 'Paddle'))

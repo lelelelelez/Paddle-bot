@@ -33,6 +33,8 @@ async def main(request):
             # treat access_token as if a personal access token
             gh = gh_aiohttp.GitHubAPI(session, user,
                         oauth_token=access_token["token"])
+            if repo != 'PaddlePaddle/Paddle' or repo != 'PaddlePaddle/benchmark':
+                repo = 'Others'
             await router.dispatch(event, gh, repo)
     return web.Response(status=200)
 
