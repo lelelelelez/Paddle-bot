@@ -17,7 +17,6 @@ async def create_check_run(sha, gh, repo):
 
 
 @router.register("pull_request", action="opened")
-@router.register("pull_request", action="synchronize")
 async def pull_request_event_ci(event, gh, repo, *args, **kwargs): 
     """Check if PR triggers CI"""
     pr_num = event.data['number']
