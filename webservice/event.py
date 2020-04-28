@@ -72,6 +72,8 @@ async def check_close_regularly(event, gh, repo, *args, **kwargs):
     """check_close_regularly"""
     url = event.data["pull_request"]["comments_url"]
     sender = event.data["sender"]["login"]
+    if repo != 'PaddlePaddle/Paddle' or repo != 'PaddlePaddle/benchmark':
+        repo = 'Others'
     if sender == 'paddle-bot[bot]':
         message = localConfig.cf.get(repo, 'CLOSE_REGULAR')
     await gh.post(url, data={"body": message})
@@ -81,6 +83,8 @@ async def check_close_regularly(event, gh, repo, *args, **kwargs):
     """check_close_regularly"""
     url = event.data["issue"]["comments_url"]
     sender = event.data["sender"]["login"]
+    if repo != 'PaddlePaddle/Paddle' or repo != 'PaddlePaddle/benchmark':
+        repo = 'Others'
     if sender == 'paddle-bot[bot]':
         message = localConfig.cf.get(repo, 'CLOSE_REGULAR')
     await gh.post(url, data={"body": message})    
