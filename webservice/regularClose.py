@@ -28,7 +28,6 @@ def getNextUrl(link):
 async def overdueList(types, url, gh):
     today = datetime.date.today()
     lastYear = str(today - datetime.timedelta(days=365))
-    print(lastYear)
     overduelist = []
     while (url != None):
         (code, header, body) = await gh._request("GET", url, {'accept': 'application/vnd.github.antiope-preview+json'})
@@ -55,12 +54,11 @@ async def close(types, itemList, gh, user, repo):
         event = 'issues'
     data = {"state": "closed"}
     d = json.dumps(data)
-    print(itemList)
     if len(itemList) != 0:
         for i in itemList:
             url = "https://api.github.com/repos/%s/%s/%s/%s" % (user, repo, event, i)
             try:
-                print(await gh.patch(url, data=data))
+                await gh.patch(url, data=data)
                 logger.info("%s_id: %s closed success!" % (event, i))
             except gidgethub.BadRequest:
                 logger.error("%s_id: %s closed failed!"  % (event, i))
