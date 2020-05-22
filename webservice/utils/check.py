@@ -53,7 +53,7 @@ def checkPRTemplate(repo, body, CHECK_TEMPLATE, CHECK_TEMPLATE_doc=None):
         option_check = "#### Optional（选填, If None, please delete it）"
         match_option = re.search(option_check, body, re.M|re.I)
         if match_option == None:
-            CHECK_TEMPLATE = "﻿#### Required（必填, multiple choices, two at most）\r\n- PR type（PR 类型） is \(\s*[A-F]+\s*\):(.*?)- PR changes（改动点）is \(\s*[A-D]+\s*\):(.*?)- Use one sentence to describe what this PR does.（简述本次PR的目的和改动）(.*[^\s].*)"
+            CHECK_TEMPLATE = "#### Required（必填, multiple choices, two at most）\r\n- PR type（PR 类型） is \(\s*[A-F]+\s*\):(.*?)- PR changes（改动点）is \(\s*[A-D]+\s*\):(.*?)- Use one sentence to describe what this PR does.（简述本次PR的目的和改动）(.*[^\s].*)"
         result = re_rule(body, CHECK_TEMPLATE)
         if len(CHECK_TEMPLATE) == 0 and len(body) == 0:
             res = False
